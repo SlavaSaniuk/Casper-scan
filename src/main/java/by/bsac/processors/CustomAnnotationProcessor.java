@@ -10,6 +10,7 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
 import java.io.IOException;
@@ -30,6 +31,7 @@ public class CustomAnnotationProcessor extends AbstractProcessor {
         this.filer = processingEnv.getFiler();
         this.messager = processingEnv.getMessager();
         this.elements_utils = processingEnv.getElementUtils();
+
     }
 
     @Override
@@ -40,11 +42,56 @@ public class CustomAnnotationProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
-        //Get class annotated with @EnableCustomAnnotations
+        //Get classes annotated with @EnableCustomAnnotation
         Set<? extends Element> enable_annotated_elements = roundEnv.getElementsAnnotatedWith(EnableCustomAnnotations.class);
-        Set<TypeElement> enable_annotated_classes = new HashSet<>();
-        for (Element enable_annotated: enable_annotated_elements)
-            if(enable_annotated.getKind() == ElementKind.CLASS) enable_annotated_classes.add((TypeElement) enable_annotated_classes);
+        Set<Class> enable_annotated_classes = new HashSet<>();
+        for (Element element : enable_annotated_elements) {
+            if (element.getKind() == ElementKind.CLASS) {
+                TypeElement type_elem = (TypeElement) element;
+                type_elem.getAnnotation(sd)
+                try {
+
+                    Class annotated_class = Class.forName(this.elements_utils.getBinaryName(type_elem).toString());
+                    enable_annotated_classes.add(annotated_class);
+                } catch (ClassNotFoundException e) {
+                    this.messager.printMessage(Diagnostic.Kind.WARNING, "No class def found with name: " +type_elem.getQualifiedName().toString());
+                    this.messager.printMessage(Diagnostic.Kind.NOTE, "Skip this TypeElement");
+                }
+            }
+        }
+
+        //Check whether how many classes annotated with @EnableCustomAnnotation
+        //If <= 0 - disable custom annotation scanning
+        if (enable_annotated_classes.size() <= 0) {
+            this.messager.printMessage(Diagnostic.Kind.WARNING, "No classes annotated with @" + EnableCustomAnnotations.class.getSimpleName()
+                    +".@" +Custom.class.getSimpleName() + " annotation scanning will not work.");
+            return true;
+        }
+        //If > 1 - select random package name value
+        if (enable_annotated_classes.size() > 1) {
+            this.messager.printMessage(Diagnostic.Kind.WARNING, "Two or more classes annotated with @" +EnableCustomAnnotations.class.getSimpleName()
+                    +". Select random package name value");
+        }
+
+        //Get path
+        String PACKAGE_NAME = null;
+        for (Class clazz : enable_annotated_classes) {
+            EnableCustomAnnotations enable_annotation = (EnableCustomAnnotations) clazz.getAnnotation(clazz);
+
+            if (enable_annotation.value() != null && !enable_annotation.value().isEmpty()) {
+                PACKAGE_NAME = enable_annotation.value();
+                break;
+            }
+        }
+
+        //Print package name where will be generated new source files (annotations stores)
+        //Check whether package name is not null
+        if (PACKAGE_NAME == null) {
+            this.messager.printMessage(Diagnostic.Kind.WARNING, "Package name is not specified. Disable annotation scanning");
+            return true;
+        }
+
+        this.messager.printMessage(Diagnostic.Kind.NOTE, "Package name where will be generated new annotations stores [" +PACKAGE_NAME +"];");
 
         //Get annotations annotated with @Custom annotation
         Set<? extends Element> annotated_elements = roundEnv.getElementsAnnotatedWith(Custom.class);
