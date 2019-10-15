@@ -1,14 +1,14 @@
-package by.bsac.processor;
-
-import by.bsac.annotations.Custom;
+package by.bsac.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-@Custom
-public @interface MyAnnotation {
+@Retention(RetentionPolicy.SOURCE)
+public @interface EnableCustomAnnotations {
+
+    String value();
+
 }
