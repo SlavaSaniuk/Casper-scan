@@ -15,6 +15,7 @@ public class StoreBuilder {
     //Class fields
     private String annotation_name;
     private final Set<Class> annotated_classes = new HashSet<>();
+    private final Set<String> annotated_classes_name = new HashSet<>();
 
     //Constructor
     private StoreBuilder() { }
@@ -44,7 +45,8 @@ public class StoreBuilder {
     public static class Builder {
 
         private String annotation_name;
-        private Set<Class> annotated_classes = new HashSet<>();
+        private final Set<Class> annotated_classes = new HashSet<>();
+        private final Set<String> annotated_classes_names = new HashSet<>();
 
         public Builder withAnnotationName(String a_annotation) {
             this.annotation_name = a_annotation;
@@ -57,10 +59,18 @@ public class StoreBuilder {
             return this;
         }
 
+        public Builder withAnnotatedClassesAsStrings(Set<String> a_annotated_classes_names) {
+            for (String class_name : a_annotated_classes_names)
+                if(class_name != null && !class_name.isEmpty())
+                    this.annotated_classes_names.add(class_name);
+            return this;
+        }
+
         public StoreBuilder build() {
             StoreBuilder builder = new StoreBuilder();
             builder.annotation_name = annotation_name;
             builder.annotated_classes.addAll(annotated_classes);
+            builder.annotated_classes_name.addAll(annotated_classes_names);
             return builder;
         }
     }
@@ -106,8 +116,8 @@ public class StoreBuilder {
                 .returns(ArrayTypeName.of(Class.class));
 
         method_builder.addStatement("final $T<$T> clazz_list = new $T<$T>()", List.class, Class.class, ArrayList.class, Class.class);
-        for (Class clazz : this.annotated_classes) {
-            method_builder.addStatement("clazz_list.add($T.class)", clazz);
+        for (String clazz_name : this.annotated_classes_name) {
+            method_builder.addStatement("clazz_list.add($L.class)", clazz_name);
         }
 
         method_builder.addStatement("return clazz_list.toArray(new Class[0])");
