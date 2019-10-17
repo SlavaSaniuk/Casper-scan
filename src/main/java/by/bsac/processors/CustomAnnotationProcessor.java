@@ -3,6 +3,7 @@ package by.bsac.processors;
 import by.bsac.annotations.Custom;
 import by.bsac.core.StoreBuilder;
 import by.bsac.store.CustomAnnotationStore;
+import com.google.auto.service.AutoService;
 import com.squareup.javapoet.JavaFile;
 
 import javax.annotation.processing.*;
@@ -11,12 +12,12 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.tools.*;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
+@AutoService(Processor.class)
 @SupportedAnnotationTypes({"by.bsac.annotations.Custom"})
 public class CustomAnnotationProcessor extends AbstractProcessor {
 
@@ -64,6 +65,8 @@ public class CustomAnnotationProcessor extends AbstractProcessor {
             Set<TypeElement> types_annotated_with_custom_annotation = new HashSet<>();
             for (Element element : elements_annotated_with_custom_annotation)
                 if (element.getKind() == ElementKind.CLASS) types_annotated_with_custom_annotation.add((TypeElement) element);
+            this.messager.printMessage(Diagnostic.Kind.NOTE, "Project has a " +types_annotated_with_custom_annotation.size()
+                    +" classes annotated with [" +custom_annotation.getQualifiedName() +"].");
 
              Set<String> annotated_classes_names = new HashSet<>();
              for (TypeElement element : types_annotated_with_custom_annotation)
@@ -75,34 +78,13 @@ public class CustomAnnotationProcessor extends AbstractProcessor {
                     .withAnnotatedClassesAsStrings(annotated_classes_names)
                     .build();
 
-            JavaFile source_file = sourceGen.sourceFile(PACKAGE_NAME);
             //Write source file
+            JavaFile source_file = sourceGen.sourceFile(PACKAGE_NAME);
+
             try {
-
-               String package_name_path = PACKAGE_NAME.replace('.','/');
-               FileObject old_source = this.filer.getResource(StandardLocation.SOURCE_PATH, PACKAGE_NAME, source_file.typeSpec.name + JavaFileObject.Kind.SOURCE.extension);
-
-
-               if (old_source.getCharContent(true).equals(source_file.toString()))  {
-                   this.messager.printMessage(Diagnostic.Kind.NOTE, "Old and current source files has a same content");
-                   return true;
-               }else {
-                   this.messager.printMessage(Diagnostic.Kind.NOTE, "In new source file content was updated");
-                   source_file.writeTo(this.filer);
-               }
-
-
-            }catch (FileNotFoundException e) {
-                this.messager.printMessage(Diagnostic.Kind.NOTE, "Write new source file");
-                try {
-                    source_file.writeTo(this.filer);
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                    return true;
-                }
-            }catch (IOException e) {
+                source_file.writeTo(this.filer);
+            } catch (IOException e) {
                 e.printStackTrace();
-                this.messager.printMessage(Diagnostic.Kind.ERROR, e.getMessage());
                 return true;
             }
         }
