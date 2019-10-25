@@ -1,7 +1,6 @@
 package by.bsac.store;
 
 import by.bsac.core.exceptions.CasperException;
-import by.bsac.core.exceptions.CustomAnnotationNotRegisteredException;
 import by.bsac.store.stores.AnnotationStore;
 
 import java.lang.annotation.Annotation;
@@ -10,12 +9,19 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Main class that suggest simple access to custom annotations in runtime.
+ */
 public class CustomAnnotationStore {
 
     private static final Map<Class<? extends Annotation>, AnnotationStore> INITIALIZED_ANNOTATION_STORES = new HashMap<>();
     public static final String ANNOTATION_STORES_PACKAGE_NAME = "by.bsac.store.stores";
 
-
+    /**
+     * Return all classes annotated with custom annotation.
+     * @param a_annotation - {@link Class} custom annotation.
+     * @return - Array of annotated {@link Class}.
+     */
     public static Class[] getClassesAnnotatedWith(Class<? extends Annotation> a_annotation) {
 
         //Check annotation parameter
@@ -48,8 +54,7 @@ public class CustomAnnotationStore {
             return store.annotatedClasses();
 
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            throw new CustomAnnotationNotRegisteredException(a_annotation);
+            return null;
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
             throw new CasperException("AnnotationStore class don't have private, no args constructor.");

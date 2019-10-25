@@ -9,6 +9,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * StoreBuilder create java source files that implements {@link AnnotationStore}
+ * and used to hold classes, annotated with user custom annotation.
+ */
 @SuppressWarnings("WeakerAccess")
 public class StoreBuilder {
 
@@ -20,6 +24,11 @@ public class StoreBuilder {
     //Constructor
     private StoreBuilder() { }
 
+    /**
+     * Generate java source file which implement {@link AnnotationStore} interface.
+     * @param package_name - package name of generated source file.
+     * @return - {@link JavaFile} source file.
+     */
     public JavaFile sourceFile(String package_name) {
 
         //Create source file skeleton

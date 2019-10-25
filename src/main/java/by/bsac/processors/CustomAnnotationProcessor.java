@@ -95,6 +95,10 @@ public class CustomAnnotationProcessor extends AbstractProcessor {
         return true;
     }
 
+    /**
+     * Write generated source files to classpath.
+     * @param sources - {@link List} of source files.
+     */
     private void writeSources(List<JavaFile> sources) {
 
         this.messager.printMessage(Diagnostic.Kind.NOTE, "Start to write generated [" +sources.size() +"] source files.");
