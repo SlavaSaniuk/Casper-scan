@@ -20,7 +20,7 @@ public class CustomAnnotationStore {
     /**
      * Return all classes annotated with custom annotation.
      * @param a_annotation - {@link Class} custom annotation.
-     * @return - Array of annotated {@link Class}.
+     * @return - Array of annotated {@link Class}, or null - if store for this annotation is not found.
      */
     public static Class[] getClassesAnnotatedWith(Class<? extends Annotation> a_annotation) {
 
